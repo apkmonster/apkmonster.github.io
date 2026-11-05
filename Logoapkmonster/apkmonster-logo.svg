@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 220" role="img" aria-label="ApkMonster">
+  <rect width="220" height="220" rx="52" fill="#10140a"/>
+  <rect x="14" y="14" width="192" height="192" rx="44" fill="#d6ff4a"/>
+  <path fill="#10140a" d="M62 74c-12-28 8-42 22-35 8 4 10 13 8 21 10-16 32-22 47-10 13 10 14 26 6 39 16-3 34 10 35 27 2 19-13 35-32 37-4 16-18 28-36 28h-13c-21 0-38-14-42-33-15-4-28-18-26-35 2-15 14-27 31-29z"/>
+  <circle cx="88" cy="116" r="9" fill="#d6ff4a"/>
+  <circle cx="126" cy="114" r="9" fill="#d6ff4a"/>
+  <circle cx="88" cy="116" r="3.5" fill="#10140a"/>
+  <circle cx="126" cy="114" r="3.5" fill="#10140a"/>
+  <text x="248" y="118" fill="#f6f3ec" font-family="Arial Black, Segoe UI, sans-serif" font-size="78" font-weight="800">APK</text>
+  <text x="248" y="182" fill="#d6ff4a" font-family="Arial Black, Segoe UI, sans-serif" font-size="64" font-weight="800">MONSTER</text>
+</svg>
