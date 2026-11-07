@@ -32,9 +32,11 @@ YEAR = 2026
 #   sticky-bottom   every page: sticky bar above the bottom nav
 #
 # Leave a value as "" to keep the current "Ad space" placeholder.
-HEAD_ADS = """
-<script src="https://quge5.com/88/tag.min.js" data-zone="306683" async data-cfasync="false"></script>
-"""
+# OFF: the PropellerAds OnClick tag (zone 306683) also injects a full-screen
+# Vignette that covers the page on load and swallows link clicks, so the site
+# became unusable. Keep it empty until Vignette/Interstitial is disabled in the
+# PropellerAds dashboard and a click-through-safe tag is issued.
+HEAD_ADS = ""
 
 # In-Page Push / banner tag. Loaded once per page, right before app.js.
 BODY_ADS = """
