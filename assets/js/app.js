@@ -96,10 +96,63 @@
     });
   }
 
+  // Floating ad units (PropellerAds In-Page Push and similar) are injected as
+  // fixed, max-z-index elements and can cover the top of the download sheet,
+  // hiding the "Continue to download" button. Hide them while the sheet is open.
+  const hiddenWhileOpen = [];
+  let adWatcher = null;
+
+  function floatingAdUnits() {
+    const roots = [document.documentElement, document.body];
+    const found = [];
+    roots.forEach((root) => {
+      Array.from(root.children).forEach((node) => {
+        if (node === sheet || node.tagName === "HEAD" || node.contains(sheet)) return;
+        if (node.tagName !== "IFRAME" && node.tagName !== "DIV") return;
+        const cs = getComputedStyle(node);
+        if (cs.position !== "fixed") return;
+        const z = parseInt(cs.zIndex, 10);
+        if (!(z > 1000)) return;
+        found.push(node);
+      });
+    });
+    return found;
+  }
+
+  function hideFloatingAds() {
+    floatingAdUnits().forEach((node) => {
+      if (node.dataset.sheetHidden) return;
+      node.dataset.sheetHidden = "1";
+      node.dataset.sheetDisplay = node.style.display;
+      node.style.setProperty("display", "none", "important");
+      hiddenWhileOpen.push(node);
+    });
+  }
+
+  function restoreFloatingAds() {
+    while (hiddenWhileOpen.length) {
+      const node = hiddenWhileOpen.pop();
+      node.style.display = node.dataset.sheetDisplay || "";
+      delete node.dataset.sheetHidden;
+      delete node.dataset.sheetDisplay;
+    }
+  }
+
+  function watchFloatingAds() {
+    if (adWatcher) return;
+    adWatcher = new MutationObserver(() => {
+      if (sheet.classList.contains("open")) hideFloatingAds();
+    });
+    adWatcher.observe(document.documentElement, { childList: true });
+    adWatcher.observe(document.body, { childList: true });
+  }
+
   function closeSheet() {
     if (!sheet) return;
     sheet.classList.remove("open");
     document.body.classList.remove("no-scroll");
+    if (adWatcher) { adWatcher.disconnect(); adWatcher = null; }
+    restoreFloatingAds();
   }
 
   document.querySelectorAll("[data-dl]").forEach((btn) => {
@@ -119,6 +172,8 @@
       mountSheetAds();
       sheet.classList.add("open");
       document.body.classList.add("no-scroll");
+      hideFloatingAds();
+      watchFloatingAds();
     });
   });
 
