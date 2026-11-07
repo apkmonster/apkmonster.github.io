@@ -7,6 +7,84 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE_URL = "https://apkmonster.site"
 YEAR = 2026
 
+# ── AD CODE ──────────────────────────────────────────────────────────────────
+# The site is generated, so ad code goes here, not into the .html files.
+#
+# 1. Network-wide scripts (PopAds popunder, PropellerAds Multitag / Onclick /
+#    Push Notifications) go into HEAD_ADS. It is inserted before </head> on
+#    every generated page.
+# 2. Banner / In-Page Push code goes into SLOT_ADS under the slot name that
+#    matches the ad block on the page (see the list below).
+#
+# Slot names and where they appear:
+#   home-top        index: slim banner under the hero
+#   home-mid        index: between the spotlight rail and the catalog
+#   home-bottom     index: tall block before the "Made for phones" panel
+#   game-buttons    game pages: banner under the Download buttons
+#   game-gallery    game pages: slim banner under the screenshots
+#   game-text       game pages: tall block after "About this port"
+#   about-page      about page: tall block
+#   safety-page     safety page: tall block
+#   privacy-page    privacy page: banner
+#   404-page        404 page: banner
+#   sheet-banner    download modal: 320x250
+#   sheet-slim      download modal: 320x50
+#   sticky-bottom   every page: sticky bar above the bottom nav
+#
+# Leave a value as "" to keep the current "Ad space" placeholder.
+HEAD_ADS = """
+<script src="https://quge5.com/88/tag.min.js" data-zone="306683" async data-cfasync="false"></script>
+"""
+
+# In-Page Push / banner tag. Loaded once per page, right before app.js.
+BODY_ADS = """
+<script>(function(s){s.dataset.zone='12213533',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+"""
+
+# Display banner tags. Paste each network tag once here and every mapped slot
+# below reuses it. The same tag may be repeated in several blocks on a page,
+# but check your network's rules and keep it to 2-3 banners per screen.
+BANNER_250 = """
+<script>
+  atOptions = {
+    'key' : 'cc42b9add9c366b716d379fc629b6fe5',
+    'format' : 'iframe',
+    'height' : 250,
+    'width' : 300,
+    'params' : {}
+  };
+</script>
+<script src="https://bellnewyork.org/22/cc42b9add9c366b716d379fc629b6fe5"></script>
+"""
+
+BANNER_50 = """
+<script>
+  atOptions = {
+    'key' : '2a051a0f40a04a57e892fd2dbd478b1e',
+    'format' : 'iframe',
+    'height' : 50,
+    'width' : 320,
+    'params' : {}
+  };
+</script>
+<script src="https://bellnewyork.org/22/2a051a0f40a04a57e892fd2dbd478b1e"></script>
+"""
+SLOT_ADS = {
+    "home-top": BANNER_50,
+    "home-mid": BANNER_250,
+    "home-bottom": BANNER_250,
+    "game-buttons": BANNER_250,
+    "game-gallery": BANNER_50,
+    "game-text": BANNER_250,
+    "about-page": BANNER_250,
+    "safety-page": BANNER_250,
+    "privacy-page": BANNER_250,
+    "404-page": BANNER_250,
+    "sheet-banner": "",
+    "sheet-slim": "",
+    "sticky-bottom": BANNER_50,
+}
+
 # To enable a download button, put the third-party URL into android_url / ios_url.
 GAMES = [
     dict(slug="cyberpunk", title="Cyberpunk 2077 Mobile", cat="action", cat_label="Action",
@@ -16,8 +94,7 @@ GAMES = [
          size="2.4 GB installer, about 32.2 GB cache after download",
          android="Snapdragon 845 or newer, 6 GB RAM",
          ios="iPhone XS Max or newer, any 2017 iPad or later, or any iPad Pro",
-         android_url="https://bearmobiles.com/1747476", ios_url="https://bearmobiles.com/1747476",
-         # temp, ios_url="https://bearmobiles.com/1802032",
+         android_url="https://bearmobiles.com/1802032", ios_url="https://bearmobiles.com/1802032",
          shots=["cyber1.jpg", "cyber2.jpg", "cyber3.jpg", "cyber4.jpg", "cyber5.png"]),
     dict(slug="gta", title="GTA 5 Mobile", cat="action", cat_label="Action",
          version="v1.1", updated="Feb 27, 2024", icon="gta5logo.jpg", poster="postergta.jpg",
@@ -27,7 +104,6 @@ GAMES = [
          android="Snapdragon 845 or newer, 6 GB RAM",
          ios="iPhone XS Max or newer, any 2017 iPad or later, or any iPad Pro",
          android_url="https://bearmobiles.com/1747476", ios_url="https://bearmobiles.com/1747476",
-         # temp, ios_url="https://bearmobiles.com/1802032",
          shots=["gta1.jpg", "gta2.jpg", "gta3.jpg", "gta4.jpg", "gta5.jpg", "gta6.jpg"]),
     dict(slug="beamng", title="BeamNG.drive Mobile", cat="sim", cat_label="Simulation",
          version="v2.0", updated="Dec 20, 2023", icon="bnn.jpg", poster="bn.jpg",
@@ -77,7 +153,7 @@ GAMES = [
     dict(slug="nfs-most-wanted", title="NFS Most Wanted 2005 Mobile", cat="racing", cat_label="Racing",
          version="v2.0", updated="Sep 28, 2023", icon="mwlogo.png", poster="mws.jpg",
          blurb="Police chases and the Blacklist in the city of Rockport.",
-         about="The mobile port of Need for Speed: Most Wasted 2005, with cover art and screenshots.",
+         about="The mobile port of Need for Speed: Most Wanted 2005, with cover art and screenshots.",
          size="1.87 GB",
          android="Android 7.1 or newer",
          ios="iOS 8 or newer",
@@ -117,11 +193,20 @@ ARCHIVED_GAMES = [
 ]
 
 
-def ad(kind="mid", note="Banner"):
+def ad_code(slot, placeholder):
+    """Return the ad code configured for a slot, or the fallback markup."""
+    code = SLOT_ADS.get(slot, "").strip()
+    return code if code else placeholder
+
+
+def ad(kind="mid", note="Banner", slot=""):
+    code = SLOT_ADS.get(slot, "").strip()
+    if not code:
+        return ""
     height = {"slim": "ad slim", "mid": "ad", "tall": "ad tall"}[kind]
     return f'''<aside class="{height}" aria-label="Advertisement">
   <div class="ad-label"><span>Advertisement</span><span>{escape(note)}</span></div>
-  <div class="ad-box"><div><strong>Ad space</strong><span>Paste your banner code here</span></div></div>
+  <div class="ad-box" data-ad-slot="{escape(slot)}">{code}</div>
 </aside>'''
 
 
@@ -155,6 +240,7 @@ def head(title, desc, robots=""):
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
+{HEAD_ADS}
 </head>
 <body>'''
 
@@ -174,8 +260,8 @@ def sheet():
   <div class="sheet-card">
     <div class="sheet-head"><h2 id="sheet-title">Download</h2><button class="x" type="button" data-close aria-label="Close">×</button></div>
     <p class="sheet-note">You are about to open an external download page. We do not control third-party sites or files. Please read our <a href="safety.html">Safety notice</a> before downloading.</p>
-    {ad("mid", "320×250")}
-    {ad("slim", "320×50")}
+    {ad("mid", "320×250", "sheet-banner")}
+    {ad("slim", "320×50", "sheet-slim")}
     <a class="dl android" id="sheet-go" href="#" target="_blank" rel="noopener noreferrer nofollow">Continue to download</a>
     <p class="sheet-missing" id="sheet-missing"></p>
     <button class="dl close" type="button" data-close>Close</button>
@@ -186,9 +272,11 @@ def sheet():
 def footer(active):
     def on(name):
         return ' class="on"' if active == name else ""
-    return f'''<div class="sticky-ad" aria-label="Advertisement">
-  <div class="ad-box"><strong>Advertisement</strong></div>
-</div>
+    sticky_code = SLOT_ADS.get("sticky-bottom", "").strip()
+    sticky = f'''<div class="sticky-ad" aria-label="Advertisement">
+  <div class="ad-box" data-ad-slot="sticky-bottom">{sticky_code}</div>
+</div>''' if sticky_code else ""
+    return f'''{sticky}
 <footer class="site"><div class="wrap">
   <a class="brand" href="index.html"><img src="Logoapkmonster/apkmonster-mark.svg" alt=""><div><b>ApkMonster</b><span>mobile ports</span></div></a>
   <div class="links"><a href="index.html">Home</a><a href="index.html#catalog">Games</a><a href="about.html">About</a><a href="safety.html">Safety</a><a href="privacy.html">Privacy</a></div>
@@ -200,6 +288,7 @@ def footer(active):
   <button id="nav-search" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search</button>
   <a href="about.html"{on("about")}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 8h.01"/></svg>Info</a>
 </nav>
+{BODY_ADS}
 <script src="assets/js/app.js" defer></script>
 </body></html>'''
 
@@ -233,12 +322,12 @@ def index():
   <h1>Big games. <em>Pocket-sized.</em></h1>
   <p>A mobile-port catalog made for phones: big tap targets, a cover rail, and dedicated ad space on every screen.</p>
 </div></div></div></section>
-{ad("slim", "top of page")}
+{ad("slim", "top of page", "home-top")}
 <section class="sec"><div class="wrap">
   <div class="sec-head"><h2>In the spotlight</h2><a href="#catalog">All games</a></div>
   <div class="rail">{feats}</div>
 </div></section>
-{ad("mid", "between blocks")}
+{ad("mid", "between blocks", "home-mid")}
 <section class="sec" id="catalog"><div class="wrap">
   <div class="sec-head"><h2>All games</h2></div>
   <div class="chips">{chip_html}</div>
@@ -246,7 +335,7 @@ def index():
   <div class="grid">{"".join(card(g) for g in GAMES)}</div>
   <div class="empty">Nothing found. Try another name.</div>
 </div></section>
-{ad("tall", "before the footer")}
+{ad("tall", "before the footer", "home-bottom")}
 <section class="sec"><div class="wrap"><div class="panel">
   <h2>Made for phones</h2>
   <div class="why">
@@ -284,18 +373,18 @@ def game_page(g):
     <button class="dl ios" type="button" data-dl="iOS · {escape(g["title"])}" data-url="{escape(g["ios_url"])}"><img src="{media("apple.png")}" alt="">Download for iOS</button>
   </div>
 </div>
-{ad("mid", "below the buttons")}
+{ad("mid", "below the buttons", "game-buttons")}
 <section class="sec"><div class="wrap">
   <div class="sec-head"><h2>Screenshots</h2></div>
   <div class="shots">{shots}</div>
 </div></section>
-{ad("slim", "below the gallery")}
+{ad("slim", "below the gallery", "game-gallery")}
 <section class="sec"><div class="wrap"><div class="panel prose">
   <h2>About this port</h2>
   <p>{escape(g["about"])}</p>
   <p>{escape(g["blurb"])}</p>
 </div></div></section>
-{ad("tall", "in the text")}
+{ad("tall", "in the text", "game-text")}
 <section class="sec"><div class="wrap">
   <div class="sec-head"><h2>More in the catalog</h2></div>
   <div class="grid">{"".join(card(x) for x in others)}</div>
@@ -315,7 +404,7 @@ def about():
   <p>Every page is designed for mobile: bottom navigation, large tap areas, swipeable galleries, and separate ad blocks at the top, between sections, within the text, and above the menu.</p>
   <p>ApkMonster is not affiliated with the game publishers or developers. All game names, logos, and trademarks belong to their respective owners. See our <a href="safety.html">Safety notice</a> for details about external links and downloads.</p>
 </div></div>
-{ad("tall", "about page")}
+{ad("tall", "about page", "about-page")}
 </main>'''
     html += footer("about")
     return html
@@ -332,7 +421,7 @@ def safety():
   <p>A link to an external site does not mean we endorse that site or its content. Always check the address in your browser before entering personal or payment information.</p>
   <p>If you are a rights holder and believe that content on this site infringes your rights, or if you find a broken or malicious link, please contact the site administrator so it can be reviewed.</p>
 </div></div>
-{ad("tall", "safety page")}
+{ad("tall", "safety page", "safety-page")}
 </main>'''
     html += footer("safety")
     return html
@@ -347,7 +436,7 @@ def privacy():
   <p>Ad blocks are currently empty. If an advertising network's code is added, that network may set its own cookies. When that happens, this page should list the network and link to its privacy policy.</p>
   <p>We do not sell or share personal data. For details about links to other sites, see our <a href="safety.html">Safety notice</a>.</p>
 </div></div>
-{ad("mid", "privacy page")}
+{ad("mid", "privacy page", "privacy-page")}
 </main>'''
     html += footer("about")
     return html
@@ -361,7 +450,7 @@ def not_found():
   <p>The page you are looking for does not exist or has been moved.</p>
   <p><a href="index.html">Back to the catalog</a></p>
 </div></div>
-{ad("mid", "404 page")}
+{ad("mid", "404 page", "404-page")}
 </main>'''
     html += footer("home")
     return html
