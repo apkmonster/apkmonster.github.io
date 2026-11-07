@@ -80,8 +80,8 @@ SLOT_ADS = {
     "safety-page": BANNER_250,
     "privacy-page": BANNER_250,
     "404-page": BANNER_250,
-    "sheet-banner": "",
-    "sheet-slim": "",
+    "sheet-banner": BANNER_250,
+    "sheet-slim": BANNER_50,
     "sticky-bottom": BANNER_50,
 }
 
@@ -210,6 +210,23 @@ def ad(kind="mid", note="Banner", slot=""):
 </aside>'''
 
 
+def lazy_ad(kind, note, slot, template_id, box_id):
+    """Ad block for the download modal.
+
+    The code is stored in an inert <template> and mounted by app.js only when
+    the modal opens, so it never fires a hidden impression on page load.
+    """
+    code = SLOT_ADS.get(slot, "").strip()
+    if not code:
+        return ""
+    height = {"slim": "ad slim", "mid": "ad", "tall": "ad tall"}[kind]
+    return f'''<aside class="{height}" aria-label="Advertisement">
+  <div class="ad-label"><span>Advertisement</span><span>{escape(note)}</span></div>
+  <div class="ad-box" data-ad-slot="{escape(slot)}" id="{box_id}"></div>
+</aside>
+<template id="{template_id}">{code}</template>'''
+
+
 def media(name):
     """Return the optimized WebP variant when it exists, else the original file."""
     stem = Path(name).stem
@@ -260,10 +277,10 @@ def sheet():
   <div class="sheet-card">
     <div class="sheet-head"><h2 id="sheet-title">Download</h2><button class="x" type="button" data-close aria-label="Close">×</button></div>
     <p class="sheet-note">You are about to open an external download page. We do not control third-party sites or files. Please read our <a href="safety.html">Safety notice</a> before downloading.</p>
-    {ad("mid", "320×250", "sheet-banner")}
-    {ad("slim", "320×50", "sheet-slim")}
     <a class="dl android" id="sheet-go" href="#" target="_blank" rel="noopener noreferrer nofollow">Continue to download</a>
     <p class="sheet-missing" id="sheet-missing"></p>
+    {lazy_ad("mid", "300x250", "sheet-banner", "sheet-ad-250-tpl", "sheet-ad-250")}
+    {lazy_ad("slim", "320x50", "sheet-slim", "sheet-ad-50-tpl", "sheet-ad-50")}
     <button class="dl close" type="button" data-close>Close</button>
   </div>
 </div>'''

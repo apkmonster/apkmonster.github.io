@@ -58,6 +58,43 @@
   const sheetTitle = document.getElementById("sheet-title");
   const sheetGo = document.getElementById("sheet-go");
   const sheetMissing = document.getElementById("sheet-missing");
+  let sheetAdsMounted = false;
+
+  // Ad code in the modal lives in <template> elements. Activate it only when
+  // the sheet opens, one unit at a time, so hidden impressions are not counted
+  // and the global atOptions of each Adsterra unit is not overwritten.
+  function mountOne(tpl, box, done) {
+    if (!tpl || !box) { done(); return; }
+    const scripts = Array.from(tpl.content.querySelectorAll("script"));
+    let i = 0;
+    function next() {
+      if (i >= scripts.length) { done(); return; }
+      const old = scripts[i++];
+      const s = document.createElement("script");
+      Array.from(old.attributes).forEach((a) => s.setAttribute(a.name, a.value));
+      if (old.src) {
+        s.onload = next;
+        s.onerror = next;
+        s.src = old.src;
+        box.appendChild(s);
+      } else {
+        s.textContent = old.textContent;
+        box.appendChild(s);
+        next();
+      }
+    }
+    next();
+  }
+
+  function mountSheetAds() {
+    if (sheetAdsMounted) return;
+    sheetAdsMounted = true;
+    const box250 = document.getElementById("sheet-ad-250");
+    const box50 = document.getElementById("sheet-ad-50");
+    mountOne(document.getElementById("sheet-ad-250-tpl"), box250, () => {
+      mountOne(document.getElementById("sheet-ad-50-tpl"), box50, () => {});
+    });
+  }
 
   function closeSheet() {
     if (!sheet) return;
@@ -79,6 +116,7 @@
         }
       }
       if (sheetMissing) sheetMissing.removeAttribute("hidden");
+      mountSheetAds();
       sheet.classList.add("open");
       document.body.classList.add("no-scroll");
     });
