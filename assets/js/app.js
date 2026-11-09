@@ -188,4 +188,41 @@
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeSheet();
   });
+
+  // The PropellerAds OnClick tag leaves a transparent, full-screen iframe on
+  // top of the page and keeps re-adding it. It swallows every click, so links
+  // and buttons stop working. Remove it once it has stayed invisible for a few
+  // seconds, then keep removing it on sight. Visible ads are left alone; the
+  // popunder still fires from the tag's own click listener.
+  (function dropClickTraps() {
+    const MIN_AGE = 3500;
+    const seen = new WeakMap();
+    let trapMode = false;
+
+    function isFullScreen(el) {
+      const r = el.getBoundingClientRect();
+      return r.width >= window.innerWidth * 0.8 && r.height >= window.innerHeight * 0.8;
+    }
+
+    function sweep() {
+      const now = Date.now();
+      [document.documentElement, document.body].forEach((root) => {
+        if (!root) return;
+        Array.from(root.children).forEach((el) => {
+          if (el.tagName !== "IFRAME" || !el.isConnected) return;
+          if (!seen.has(el)) seen.set(el, now);
+          if (!isFullScreen(el)) return;
+          if (parseFloat(getComputedStyle(el).opacity) > 0.05) return;
+          if (trapMode || now - seen.get(el) >= MIN_AGE) {
+            trapMode = true;
+            el.remove();
+          }
+        });
+      });
+    }
+
+    setInterval(sweep, 1000);
+    new MutationObserver(sweep).observe(document.documentElement, { childList: true });
+    new MutationObserver(sweep).observe(document.body, { childList: true });
+  })();
 })();
